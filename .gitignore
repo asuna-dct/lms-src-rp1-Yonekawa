@@ -1,57 +1,47 @@
-# Compiled class file
-*.class
+# Compiled class file 
+*.class 
 
-# Log file
+# Log file 
 *.log
 
-# BlueJ files
-*.ctxt
+# BlueJ files 
+*.ctxt 
 
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
+# Mobile Tools for Java (J2ME) 
+.mtj.tmp/ 
 
-# Package Files #
-*.jar
-*.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
+# Package Files # 
+*.jar 
+*.war 
+*.nar 
+*.ear 
+*.zip 
+*.tar.gz 
+*.rar 
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-replay_pid*
-#--
+#Eclipse 
+.metadata 
+bin/ 
+tmp/ 
 
-# Eclipse
-.project
-.classpath
-.settings
+*.tmp 
+*.bak 
+*.swp 
+*~.nib 
+local.properties 
+.settings/ 
+.loadpath 
+.recommenders 
 
-# Idea
-.idea
-*.iml
-*.iws
-*.ipr
+# virtual machine crash logs 
+hs_err_pid* 
+replay_pid* 
 
-# OS
-Thumbs.db
-.DS_Store
+# Maven artifacts 
+/target/ 
 
-# Gradle
-.gradle
-!gradle-wrapper.jar
-
-# Maven
-target
-
-# Build
-out
-build
-bin
-
-# Other
-*.log
-*.swp
-*.bak
+# Eclipse artifacts, including WTP generated manifests 
+.classpath 
+.project 
+.springBeans 
+spring-*/src/main/java/META-INF/MANIFEST.MF

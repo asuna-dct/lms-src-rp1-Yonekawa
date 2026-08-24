@@ -74,6 +74,15 @@
 	</div>
 
 	<script type="text/javascript" th:inline="javascript">
+		
+		window.onload = function () {
+			const notEnterFlg = /*[[${notEnterFlg}]]*/ false
+			if (notEnterFlg) {
+				alert("過去日の勤怠に未入力があります。");
+			 }
+		};
+
+		
 		$(function() {
 			$("#now").text('現在の時刻は　' + getClock() + '　です。');
 			setInterval(function() {

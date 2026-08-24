@@ -14,7 +14,10 @@ import jp.co.sss.lms.dto.AttendanceManagementDto;
 import jp.co.sss.lms.dto.LoginUserDto;
 import jp.co.sss.lms.form.AttendanceForm;
 import jp.co.sss.lms.service.StudentAttendanceService;
+import jp.co.sss.lms.service.UserService;
+import jp.co.sss.lms.util.AttendanceUtil;
 import jp.co.sss.lms.util.Constants;
+import jp.co.sss.lms.util.LoginUserUtil;
 
 /**
  * 勤怠管理コントローラ
@@ -26,10 +29,15 @@ import jp.co.sss.lms.util.Constants;
 public class AttendanceController {
 
 	@Autowired
-	private StudentAttendanceService studentAttendanceService;
+	private AttendanceUtil attendanceUtil;
 	@Autowired
 	private LoginUserDto loginUserDto;
-
+	@Autowired
+	private LoginUserUtil loginUserUtil;
+	@Autowired
+	private StudentAttendanceService studentAttendanceService;
+	@Autowired
+	private UserService userService;
 	/**
 	 * 勤怠管理画面 初期表示
 	 * 
@@ -40,12 +48,19 @@ public class AttendanceController {
 	 * @throws ParseException
 	 */
 	@RequestMapping(path = "/detail", method = RequestMethod.GET)
-	public String index(Model model) {
+	public String index(Integer lmsUserId, Integer courseId,Model model) throws ParseException {
 
 		// 勤怠一覧の取得
 		List<AttendanceManagementDto> attendanceManagementDtoList = studentAttendanceService
 				.getAttendanceManagement(loginUserDto.getCourseId(), loginUserDto.getLmsUserId());
 		model.addAttribute("attendanceManagementDtoList", attendanceManagementDtoList);
+
+//		Task.25 過去日が未入力の場合の表示機能
+//		受講生権限の場合、 StudentAttendanceService.notEnterCheck() を呼び出す。
+		Boolean hasNotEnter= studentAttendanceService.notEnterCheck();
+//		未入力日があればtrueを受け取る
+//		受け取ったnotEnterCheckの結果をmodelスコープに登録する。	
+		model.addAttribute("notEnterFlg", hasNotEnter);
 
 		return "attendance/detail";
 	}
@@ -116,6 +131,8 @@ public class AttendanceController {
 		AttendanceForm attendanceForm = studentAttendanceService
 				.setAttendanceForm(attendanceManagementDtoList);
 		model.addAttribute("attendanceForm", attendanceForm);
+		
+
 
 		return "attendance/update";
 	}
@@ -132,7 +149,6 @@ public class AttendanceController {
 	@RequestMapping(path = "/update", params = "complete", method = RequestMethod.POST)
 	public String complete(AttendanceForm attendanceForm, Model model, BindingResult result)
 			throws ParseException {
-
 		// 更新
 		String message = studentAttendanceService.update(attendanceForm);
 		model.addAttribute("message", message);
@@ -140,7 +156,12 @@ public class AttendanceController {
 		List<AttendanceManagementDto> attendanceManagementDtoList = studentAttendanceService
 				.getAttendanceManagement(loginUserDto.getCourseId(), loginUserDto.getLmsUserId());
 		model.addAttribute("attendanceManagementDtoList", attendanceManagementDtoList);
-
+		
+	/**
+	 * Task.26 入力された出退勤の{時間}{分}をhh:mm形式に変換し、AttendanceFormにセットする
+	 * 
+	 * StudentAttendanceService.formatConversion(AttendanceForm)を呼び出す。
+	 */
 		return "attendance/detail";
 	}
 

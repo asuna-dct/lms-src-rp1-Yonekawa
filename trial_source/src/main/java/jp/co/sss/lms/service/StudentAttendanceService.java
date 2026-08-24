@@ -1,6 +1,7 @@
 package jp.co.sss.lms.service;
 
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.List;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.BindingResult;
 
 import jp.co.sss.lms.dto.AttendanceManagementDto;
 import jp.co.sss.lms.dto.LoginUserDto;
@@ -15,6 +17,7 @@ import jp.co.sss.lms.entity.TStudentAttendance;
 import jp.co.sss.lms.enums.AttendanceStatusEnum;
 import jp.co.sss.lms.form.AttendanceForm;
 import jp.co.sss.lms.form.DailyAttendanceForm;
+import jp.co.sss.lms.mapper.MLmsUserMapper;
 import jp.co.sss.lms.mapper.TStudentAttendanceMapper;
 import jp.co.sss.lms.util.AttendanceUtil;
 import jp.co.sss.lms.util.Constants;
@@ -32,6 +35,8 @@ import jp.co.sss.lms.util.TrainingTime;
 public class StudentAttendanceService {
 
 	@Autowired
+	private TrainingTime trainingTime;
+	@Autowired
 	private DateUtil dateUtil;
 	@Autowired
 	private AttendanceUtil attendanceUtil;
@@ -42,7 +47,21 @@ public class StudentAttendanceService {
 	@Autowired
 	private LoginUserDto loginUserDto;
 	@Autowired
+	private MLmsUserMapper mLmsUserMapper;
+//	@Autowired
+//	private MPlaceMapper mPlaceMapper;
+//	@Autowired
+//	private TCompanyAttendanceMapper tCompanyAttendanceMapper;
+//	@Autowired
+//	private TUserPlaceMapper tUserPlaceMapper;
+	@Autowired
 	private TStudentAttendanceMapper tStudentAttendanceMapper;
+//	@Autowired
+//	private PlaceService placeService;	
+//	@Autowired
+//	private CourseService courseService;	
+//	@Autowired
+//	private CompanyService companyService;
 
 	/**
 	 * 勤怠一覧情報取得
@@ -206,6 +225,7 @@ public class StudentAttendanceService {
 
 	/**
 	 * 勤怠フォームへ設定
+	 * Task.26 出退勤時間の入力方法変更
 	 * 
 	 * @param attendanceManagementDtoList
 	 * @return 勤怠編集フォーム
@@ -253,6 +273,35 @@ public class StudentAttendanceService {
 
 			attendanceForm.getAttendanceList().add(dailyAttendanceForm);
 		}
+//		
+//
+//		AttendanceForm をインスタンス化し、ログインユーザー情報や選択用マップ（時・分）を設定する。
+//		>>>時間,分のプルダウン用のマップを生成する
+//
+//		時間マップ
+//		{0,"01"},{1,"02"}...{11,"12"}
+//
+//		分マップ
+//		{0,"01"},{1,"02"}...{59,"60"}
+//
+//		# 処理
+//		 * 時間マップ　LinkedHashMap<Integer, String>を生成する
+//		 * 時間マップに{null,""}を追加する
+//		[loop] 初期値i=0; i<12; i++
+//		   * 時間マップに{i,String.format("%02d", i)}を追加する。
+//		[loop end] 
+//		//分マップも同様に処理を行う。
+//		---
+//		 * DailyAttendanceForm を作成し、DTOの各項目（時刻、ステータス、備考、中抜け時間等）をコピーする。
+//		>>>【追加】時刻を「時」「分」に分割してセットし、表示用の日付文字列を生成してセットする。
+//
+//		# 加工の例
+//		"09:15" -> 9,15//時間と分に分割しフォームにセットする 
+//
+//		timeString=attendanceManagementDto.getTrainingStartTime()//"09:15"
+//		startHour=Integer.parseInt(timeString.substring(0, 2));//9
+//		dailyAttendanceForm.setTrainingStartTimeHour(startHour);
+//		//開始分、退勤時、退勤分も同様に処理する
 
 		return attendanceForm;
 	}
@@ -332,6 +381,110 @@ public class StudentAttendanceService {
 		}
 		// 完了メッセージ
 		return messageUtil.getMessage(Constants.PROP_KEY_ATTENDANCE_UPDATE_NOTICE);
+	}
+	
+	/**
+	 * Task.25 過去日の未入力チェック
+	 * 
+	 * @param attendanceForm
+	 * @return チェック結果
+	 * @throws ParseException
+	 */
+	public Boolean notEnterCheck() throws ParseException {
+	//# 概要 今日より前の過去日に、未入力の勤怠があるかどうかを判定する。
+	//# 処理 
+	// 今日の日付を取得する。
+	//Date trainingDate = attendanceUtil.getTrainingDate() ;
+		
+		Date today = new Date(); //yyyyMMdd hh:mm:ss →型変換をする
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+		String date = sdf.format(today);
+		Date trainingDate = sdf.parse(date);
+		
+		Integer lmsUserId = loginUserDto.getLmsUserId();
+		
+//		削除フラグ（0）	
+		short deleteFlg = Constants.DB_FLG_FALSE;
+//		②-Ⅱで取得した現在日付																				
+
+		
+	// tStudentAttendanceMapper.notEnterCount を呼び出し、未入力件数を取得する。
+		int notEnterCount = tStudentAttendanceMapper.notEnterCount(lmsUserId, deleteFlg, trainingDate);
+
+		if (notEnterCount > 0) {
+			return true;
+		}else {
+			return false;
+		}
+	}	
+	
+	/**
+	 * Task.26 入力された出退勤の{時間}{分}をhh:mm形式に変換し、AttendanceFormにセットする
+	 * 
+	 * @param attendanceForm
+	 */
+	public void formatConversion (AttendanceForm attendanceForm)  {	
+//# 概要 フォーム内の「時」と「分」の入力を、「hh:mm」形式の文字列に変換してセットする。
+//# 処理 
+
+//		AttendanceForm#getAttendanceList()
+//		 を呼び出し、出勤Listを取得する
+//		拡張for文で出勤リストからを取得する
+//		for(int i: DailyAttendanceForm){
+		
+//		}
+//
+//		出勤時と出勤分をhh:mm形式の文字列にフォーマットし、フォームにセットする
+
+//		DailyAttendanceForm#getTrainingStartTimeHour()
+//		 を呼び出し、出勤時を取得する
+
+//		DailyAttendanceForm#getTrainingStartTimeMinute()
+//		 を呼び出し、出勤分を取得する
+//		[]:
+//		出勤時と出勤分を文字列にフォーマットし,hh:mm形式にして 
+
+//		DailyAttendanceForm#setTraingStartTime()
+//		 を呼び出す。
+//		退勤時と退勤分をhh:mm形式の文字列にフォーマットし、フォームにセットする
+//		if(出勤時がNULL && NULLでない場合) {
+//			trainingStartTime、か;	
+//		}
+//		DailyAttendanceForm#getTrainingEndTimeHour()
+//		 を呼び出し、退勤時を取得する
+
+//		DailyAttendanceForm#getTrainingEndTimeMinute()
+//		 を呼び出し、退勤分を取得する
+
+//		
+//		退勤時と退勤分を文字列にフォーマットし、hh:mm形式にして 
+
+//		DailyAttendanceForm#setTrainingEndTime(String)
+//		 を呼び出す。
+//		if([退勤時がNULLでない && かつ退勤分がNULLでない場合]:) {
+//			trainingEndTime;	
+//		}
+	
+	}
+	
+	/**
+	 * Task.27 勤怠入力チェック
+	 * 
+	 * @param attendanceForm 出退勤フォーム
+	 * @param result 入力フォームのエラー値の検出、格納
+	 */
+	public void updateInputCheck (AttendanceForm attendanceForm, BindingResult result) {
+//
+//# 概要 勤怠更新時の入力チェックを行う（文字数、時刻の整合性、中抜け時間の妥当性）。
+//
+//# 処理
+//[loop] DailyAttendanceForm ごとにチェックを実施。 
+//    * 備考の文字数チェック（100文字以内）。 
+//    * 時刻の「時」だけ、「分」だけといった片側未入力チェック。 
+//    * 「出勤なし、退勤あり」の矛盾チェック。  
+//    * [if エラーがなければ] 出勤時刻 ＞ 退勤時刻 になっていないか比較チェック。
+//    * [if 中抜け時間が入力されている場合] 出退勤の差分から計算される最大受講時間よりも中抜け時間が長くないかチェック。
+//[loop end]"																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																							
 	}
 
 }

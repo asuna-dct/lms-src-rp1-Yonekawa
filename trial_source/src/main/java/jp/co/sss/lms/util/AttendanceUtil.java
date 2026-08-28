@@ -22,6 +22,8 @@ public class AttendanceUtil {
 	private DateUtil dateUtil;
 	@Autowired
 	private MSectionMapper mSectionMapper;
+	@Autowired
+	private TrainingTime trainingTime;
 
 	/**
 	 * SSS定時・出退勤時間を元に、遅刻早退を判定をする
@@ -146,5 +148,105 @@ public class AttendanceUtil {
 		}
 		return false;
 	}
+	
+	/**
+	 * Task.26 時間のプルダウンマップを生成
+	 * 
+	 * @return 時間のプルダウンマップ
+	 */
+	public LinkedHashMap<Integer,String> getHourMap(){
+		
+//		AttendanceForm をインスタンス化し、ログインユーザー情報や選択用マップ（時・分）を設定する。
+//		>>>時間,分のプルダウン用のマップを生成する
+//
+//		時間マップ
+//		{0,"00"},{1,"01"}...{23,"23"}
+		LinkedHashMap<Integer, String> hourMap = new LinkedHashMap<>();
+//		# 処理
+		hourMap.put(null, "");
+		for (Integer i = 0; i < 24; i++) {
+			hourMap.put (i, String.format("%02d", i));
+			}
+			
+			return hourMap;
+		
+	}
+	
+	/**
+	 * Task.26 分のプルダウンマップを生成
+	 * 
+	 * @return 分のプルダウンマップ
+	 */
+	public LinkedHashMap<Integer,String> getMinuteMap(){
+		
+//		分マップ
+//		{0,"00"},{1,"01"}...{59,"59"}
+		LinkedHashMap<Integer, String> minuteMap = new LinkedHashMap<>();
+//		# 処理
+//		 * 分マップに{null,""}を追加する
+		minuteMap.put(null, "");
+		for (Integer i = 0; i < 60; i++) {
+			minuteMap.put (i, String.format("%02d", i));
+		}
+
+		return minuteMap;
+	}
+	
+	/**
+	 * Task.26 時間(時)の切り出し
+	 * 
+	 * @param trainingTime 開始時刻or終了時刻
+	 * @return 切り出された時間(時)
+	 */
+//	public Integer getHour(String trainingTime) {
+//		
+//		Integer hour = hourMap.get(i);
+//		
+//		
+//		
+//		return hour;
+//		
+//	}
+	
+	/**
+	 * Task.26 時間(分)の切り出し
+	 * 
+	 * @param trainingTime 開始時刻or終了時刻
+	 * @return 切り出された時間(分)
+	 */
+//	public Integer getMinute(String trainingTime) {
+//		
+//		Integer minute;
+//		
+//		
+//		
+//		
+//		return minute;
+//	}
+	
+	/**
+	 * Task.26 受講時間数を算出する
+	 * 
+	 * @param trainingStartTime
+	 * @param trainingEndTime
+	 * @return 受講合計時間数
+	 */
+	public TrainingTime calcJukoTime(TrainingTime trainingStartTime, TrainingTime trainingEndTime) {
+		
+		return trainingTime;
+		
+	}
+	
+	/**
+	 * Task.26 中抜け時間(文字列)を数字に変換
+	 * 
+	 * @param min
+	 * @return brankTime
+	 */
+//	public Integer reverseBlankTime(String time) {
+//		
+//		return brankTime;
+//	}
+	
 
 }

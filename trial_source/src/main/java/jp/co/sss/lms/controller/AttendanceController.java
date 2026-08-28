@@ -162,6 +162,10 @@ public class AttendanceController {
 	 * 
 	 * StudentAttendanceService.formatConversion(AttendanceForm)を呼び出す。
 	 */
+		
+//		trainingTime = StudentAttendanceService.formatConversion(attendanceForm);
+		
+		
 		return "attendance/detail";
 	}
 

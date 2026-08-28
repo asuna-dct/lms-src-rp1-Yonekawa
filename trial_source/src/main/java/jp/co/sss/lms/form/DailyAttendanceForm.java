@@ -20,6 +20,14 @@ public class DailyAttendanceForm {
 	private String trainingStartTime;
 	/** 退勤時間 */
 	private String trainingEndTime;
+	/** 出勤時間 */	
+	private Integer trainingStartTimeHour;
+	/** 出勤分 */	
+	private Integer trainingStartTimeMinute;
+	/** 退勤時間 */
+	private Integer trainingEndTimeHour;
+	/** 退勤分 */
+	private Integer trainingEndTimeMinute;
 	/** 中抜け時間 */
 	private Integer blankTime;
 	/** 中抜け時間（画面表示用） */
@@ -28,6 +36,18 @@ public class DailyAttendanceForm {
 	private String status;
 	/** 備考 */
 	private String note;
+	/** 欠席フラグ */
+	private Boolean isAbsent;
+	/** 出勤時間（入力値） */
+	private String trainingStartTimeRaw;
+	/** 退勤時間（入力値） */
+	private String trainingEndTimeRaw;
+	/** 出勤時間（調整後） */
+	private String trainingStartTimeRounded;
+	/** 退勤時間（調整後） */
+	private String trainingEndTimeRounded;
+	/** 備考（入力値） */
+	private String noteRaw;
 	/** セクション名 */
 	private String sectionName;
 	/** 当日フラグ */
@@ -46,5 +66,6 @@ public class DailyAttendanceForm {
 	private String courseName;
 	/** インデックス */
 	private String index;
-
+	/** 企業勤怠ID */
+	private Integer companyAttendanceId;
 }

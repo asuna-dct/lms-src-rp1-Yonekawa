@@ -225,7 +225,6 @@ public class StudentAttendanceService {
 
 	/**
 	 * 勤怠フォームへ設定
-	 * Task.26 出退勤時間の入力方法変更
 	 * 
 	 * @param attendanceManagementDtoList
 	 * @return 勤怠編集フォーム
@@ -239,7 +238,11 @@ public class StudentAttendanceService {
 		attendanceForm.setUserName(loginUserDto.getUserName());
 		attendanceForm.setLeaveFlg(loginUserDto.getLeaveFlg());
 		attendanceForm.setBlankTimes(attendanceUtil.setBlankTime());
-
+//		勤怠FORM．時間マップ（選択肢）勤怠Utilを使用して選択肢用の時間マップを取得
+		attendanceForm.setHourMap(attendanceUtil.getHourMap());
+//		勤怠FORM．分マップ（選択肢）	勤怠Utilを使用して選択肢用の分マップを取得
+		attendanceForm.setMinuteMap(attendanceUtil. getMinuteMap());
+		
 		// 途中退校している場合のみ設定
 		if (loginUserDto.getLeaveDate() != null) {
 			attendanceForm
@@ -258,6 +261,8 @@ public class StudentAttendanceService {
 			dailyAttendanceForm
 					.setTrainingStartTime(attendanceManagementDto.getTrainingStartTime());
 			dailyAttendanceForm.setTrainingEndTime(attendanceManagementDto.getTrainingEndTime());
+
+			
 			if (attendanceManagementDto.getBlankTime() != null) {
 				dailyAttendanceForm.setBlankTime(attendanceManagementDto.getBlankTime());
 				dailyAttendanceForm.setBlankTimeValue(String.valueOf(
@@ -273,35 +278,6 @@ public class StudentAttendanceService {
 
 			attendanceForm.getAttendanceList().add(dailyAttendanceForm);
 		}
-//		
-//
-//		AttendanceForm をインスタンス化し、ログインユーザー情報や選択用マップ（時・分）を設定する。
-//		>>>時間,分のプルダウン用のマップを生成する
-//
-//		時間マップ
-//		{0,"01"},{1,"02"}...{11,"12"}
-//
-//		分マップ
-//		{0,"01"},{1,"02"}...{59,"60"}
-//
-//		# 処理
-//		 * 時間マップ　LinkedHashMap<Integer, String>を生成する
-//		 * 時間マップに{null,""}を追加する
-//		[loop] 初期値i=0; i<12; i++
-//		   * 時間マップに{i,String.format("%02d", i)}を追加する。
-//		[loop end] 
-//		//分マップも同様に処理を行う。
-//		---
-//		 * DailyAttendanceForm を作成し、DTOの各項目（時刻、ステータス、備考、中抜け時間等）をコピーする。
-//		>>>【追加】時刻を「時」「分」に分割してセットし、表示用の日付文字列を生成してセットする。
-//
-//		# 加工の例
-//		"09:15" -> 9,15//時間と分に分割しフォームにセットする 
-//
-//		timeString=attendanceManagementDto.getTrainingStartTime()//"09:15"
-//		startHour=Integer.parseInt(timeString.substring(0, 2));//9
-//		dailyAttendanceForm.setTrainingStartTimeHour(startHour);
-//		//開始分、退勤時、退勤分も同様に処理する
 
 		return attendanceForm;
 	}
@@ -405,8 +381,6 @@ public class StudentAttendanceService {
 		
 //		削除フラグ（0）	
 		short deleteFlg = Constants.DB_FLG_FALSE;
-//		②-Ⅱで取得した現在日付																				
-
 		
 	// tStudentAttendanceMapper.notEnterCount を呼び出し、未入力件数を取得する。
 		int notEnterCount = tStudentAttendanceMapper.notEnterCount(lmsUserId, deleteFlg, trainingDate);
@@ -427,44 +401,47 @@ public class StudentAttendanceService {
 //# 概要 フォーム内の「時」と「分」の入力を、「hh:mm」形式の文字列に変換してセットする。
 //# 処理 
 
-//		AttendanceForm#getAttendanceList()
-//		 を呼び出し、出勤Listを取得する
-//		拡張for文で出勤リストからを取得する
-//		for(int i: DailyAttendanceForm){
-		
-//		}
-//
+//		AttendanceForm#getAttendanceList() を呼び出し、出勤Listを取得する
+		List<DailyAttendanceForm> attendanceList = new ArrayList<>();
+		 attendanceList = attendanceForm.getAttendanceList();
+//		拡張for文で出勤リストからDailyAttendanceFormを取得する
+		for(DailyAttendanceForm i: attendanceList){
+			DailyAttendanceForm dailyAttendanceForm = new DailyAttendanceForm();
+			attendanceList.get(0);
 //		出勤時と出勤分をhh:mm形式の文字列にフォーマットし、フォームにセットする
-
-//		DailyAttendanceForm#getTrainingStartTimeHour()
-//		 を呼び出し、出勤時を取得する
-
-//		DailyAttendanceForm#getTrainingStartTimeMinute()
-//		 を呼び出し、出勤分を取得する
-//		[]:
-//		出勤時と出勤分を文字列にフォーマットし,hh:mm形式にして 
-
-//		DailyAttendanceForm#setTraingStartTime()
-//		 を呼び出す。
+//		DailyAttendanceForm#getTrainingStartTimeHour() を呼び出し、出勤時を取得する
+			Integer TrainingStartTimeHour = dailyAttendanceForm.getTrainingStartTimeHour();
+//		DailyAttendanceForm#getTrainingStartTimeMinute() を呼び出し、出勤分を取得する
+			Integer TrainingStartTimeMinute = dailyAttendanceForm.getTrainingStartTimeMinute();
+		
+			if(TrainingStartTimeHour != null && TrainingStartTimeMinute !=null) {
+//		出勤時と出勤分を文字列にフォーマットし,hh:mm形式にして
+				SimpleDateFormat tst = new SimpleDateFormat("HH:mm");
+				String sT = tst.format(TrainingStartTimeHour + ":" + TrainingStartTimeMinute);
+//		DailyAttendanceForm#setTraingStartTime() を呼び出す。
+				
+//				dailyAttendanceForm.setTrainingStartTime();
+				
+			}
+		
 //		退勤時と退勤分をhh:mm形式の文字列にフォーマットし、フォームにセットする
-//		if(出勤時がNULL && NULLでない場合) {
-//			trainingStartTime、か;	
-//		}
-//		DailyAttendanceForm#getTrainingEndTimeHour()
-//		 を呼び出し、退勤時を取得する
-
-//		DailyAttendanceForm#getTrainingEndTimeMinute()
-//		 を呼び出し、退勤分を取得する
-
-//		
+//		DailyAttendanceForm#getTrainingEndTimeHour()  を呼び出し、退勤時を取得する
+			Integer TrainingEndTimeHour = dailyAttendanceForm.getTrainingEndTimeHour();
+//		DailyAttendanceForm#getTrainingEndTimeMinute() を呼び出し、退勤分を取得する
+			Integer TrainingEndTimeMinute = dailyAttendanceForm.getTrainingEndTimeMinute();
+		
+			if(TrainingEndTimeHour != null && TrainingEndTimeMinute != null) {
 //		退勤時と退勤分を文字列にフォーマットし、hh:mm形式にして 
+				SimpleDateFormat tet = new SimpleDateFormat("HH:mm");
+				String eT = tet.format(TrainingEndTimeHour + ":" + TrainingEndTimeMinute);
+			
+//		DailyAttendanceForm#setTrainingEndTime(String) を呼び出す。
+//				String endTime = dailyAttendanceForm.setTrainingEndTime(eT);
+			}
+			
+//	DailyAttendanceForm内の処理終了		
+		}	
 
-//		DailyAttendanceForm#setTrainingEndTime(String)
-//		 を呼び出す。
-//		if([退勤時がNULLでない && かつ退勤分がNULLでない場合]:) {
-//			trainingEndTime;	
-//		}
-	
 	}
 	
 	/**
